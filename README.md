@@ -68,7 +68,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgments
 
-- [Sentinel-1&2 Image Pairs, Michael Schmitt, Technical University of Munich (TUM)](https://mediatum.ub.tum.de/1436631) 
+1. [Sentinel-1&2 Image Pairs, Michael Schmitt, Technical University of Munich (TUM)](https://mediatum.ub.tum.de/1436631) 
 ```
 @misc{1436631,
 	author = {Schmitt, Michael},
@@ -82,7 +82,7 @@ synthetic aperture radar and optical image patches acquired by the Sentinel-1 an
 	note = {},
 }
 ```
-- [Image-to-Image Translation Using Conditional Adversarial Networks](https://arxiv.org/pdf/1611.07004v1):
+2. [Image-to-Image Translation Using Conditional Adversarial Networks](https://arxiv.org/pdf/1611.07004v1):
 ```
 @article{pix2pix2017,
   title={Image-to-Image Translation with Conditional Adversarial Networks},
