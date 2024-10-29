@@ -45,7 +45,7 @@ class UnetEncoder(nn.Module):
 class UnetDecoder(nn.Module):
     """Creates the Unet Decoder Network.
     """
-    def __init__(self, in_channels=512, out_channels=64):
+    def __init__(self, in_channels=512, out_channels=64, use_upsampling=False, mode='nearest'):
         """
         Constructs the Unet Decoder Network.
 
@@ -56,42 +56,52 @@ class UnetDecoder(nn.Module):
         Args:
             in_channels (int): Number of input channels.
             out_channels (int, optional): Number of output channels. Default is 512.
+            use_upsampling (bool, optional): Upsampling method for decoder. 
+                If True, use upsampling layer followed regular convolution layer.
+                If False, use transpose convolution. Default is False
+            mode (str, optional): the upsampling algorithm: one of 'nearest', 
+                'bilinear', 'bicubic'. Default: 'nearest'
         """
         super(UnetDecoder, self).__init__()
-        self.conv9 = UpsamplingBlock(in_channels, 512, use_dropout=True, upsample=False) # CD512
-        self.conv10 = UpsamplingBlock(1024, 512, use_dropout=True, upsample=False) # CD1024
-        self.conv11 = UpsamplingBlock(1024, 512, use_dropout=True, upsample=False) # CD1024
-        self.conv12 = UpsamplingBlock(1024, 512, upsample=False) # C1024
-        self.conv13 = UpsamplingBlock(1024, 256, upsample=False) # C1024
-        self.conv14 = UpsamplingBlock(512, 128, upsample=False) # C512
-        self.conv15 = UpsamplingBlock(256, 64, upsample=False) # C256
-        self.conv16 = UpsamplingBlock(128, out_channels, upsample=False) # C128
+        self.dec1 = UpsamplingBlock(in_channels, 512, use_dropout=True, use_upsampling=use_upsampling, mode=mode) # CD512
+        self.dec2 = UpsamplingBlock(1024, 512, use_dropout=True, use_upsampling=use_upsampling, mode=mode) # CD1024
+        self.dec3 = UpsamplingBlock(1024, 512, use_dropout=True, use_upsampling=use_upsampling, mode=mode) # CD1024
+        self.dec4 = UpsamplingBlock(1024, 512, use_upsampling=use_upsampling, mode=mode) # C1024
+        self.dec5 = UpsamplingBlock(1024, 256, use_upsampling=use_upsampling, mode=mode) # C1024
+        self.dec6 = UpsamplingBlock(512, 128, use_upsampling=use_upsampling, mode=mode) # C512
+        self.dec7 = UpsamplingBlock(256, 64, use_upsampling=use_upsampling, mode=mode) # C256
+        self.dec8 = UpsamplingBlock(128, out_channels, use_upsampling=use_upsampling, mode=mode) # C128
     
 
     def forward(self, x):
-        x9 = torch.cat([x[1], self.conv9(x[0])], 1) # (N,1024,H,W)
-        x10 = torch.cat([x[2], self.conv10(x9)], 1) # (N,1024,H,W)
-        x11 = torch.cat([x[3], self.conv11(x10)], 1) # (N,1024,H,W)
-        x12 = torch.cat([x[4], self.conv12(x11)], 1) # (N,1024,H,W)
-        x13 = torch.cat([x[5], self.conv13(x12)], 1) # (N,512,H,W)
-        x14 = torch.cat([x[6], self.conv14(x13)], 1) # (N,256,H,W)
-        x15 = torch.cat([x[7], self.conv15(x14)], 1) # (N,128,H,W)
-        out = self.conv16(x15) # (N,64,H,W)
+        x9 = torch.cat([x[1], self.dec1(x[0])], 1) # (N,1024,H,W)
+        x10 = torch.cat([x[2], self.dec2(x9)], 1) # (N,1024,H,W)
+        x11 = torch.cat([x[3], self.dec3(x10)], 1) # (N,1024,H,W)
+        x12 = torch.cat([x[4], self.dec4(x11)], 1) # (N,1024,H,W)
+        x13 = torch.cat([x[5], self.dec5(x12)], 1) # (N,512,H,W)
+        x14 = torch.cat([x[6], self.dec6(x13)], 1) # (N,256,H,W)
+        x15 = torch.cat([x[7], self.dec7(x14)], 1) # (N,128,H,W)
+        out = self.dec8(x15) # (N,64,H,W)
         return out
     
 
 class UnetGenerator(nn.Module):
     """Create a Unet-based generator"""
-    def __init__(self, in_channels=3, out_channels=3):
+    def __init__(self, in_channels=3, out_channels=3, use_upsampling=False, mode='nearest'):
         """
         Constructs a Unet generator
         Args:
             in_channels (int): The number of input channels.
             out_channels (int): The number of output channels.
+            use_upsampling (bool, optional): Upsampling method for decoder. 
+                If True, use upsampling layer followed regular convolution layer.
+                If False, use transpose convolution. Default is False
+            mode (str, optional): the upsampling algorithm: one of 'nearest', 
+                'bilinear', 'bicubic'. Default: 'nearest'
         """
         super(UnetGenerator, self).__init__()
         self.encoder = UnetEncoder(in_channels=in_channels)
-        self.decoder = UnetDecoder()
+        self.decoder = UnetDecoder(use_upsampling=use_upsampling, mode=mode)
         # In the paper, the authors state:
         #   """
         #       After the last layer in the decoder, a convolution is applied

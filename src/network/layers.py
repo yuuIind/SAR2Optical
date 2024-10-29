@@ -43,7 +43,7 @@ class UpsamplingBlock(nn.Module):
     """Defines the Unet upsampling block.
     """
     def __init__(self, in_channels, out_channels, kernel_size=4, stride=2, 
-                 padding=1, use_dropout=False, upsample=False):
+                 padding=1, use_dropout=False, use_upsampling=False, mode='nearest'):
         
         """
         Initializes the Unet Upsampling Block.
@@ -56,16 +56,21 @@ class UpsamplingBlock(nn.Module):
             padding (int, optional): Zero-padding added to both sides of the input. Default is 0.
             use_dropout (bool, optional): if use dropout layers. Default is False.
             upsample (bool, optinal): if use upsampling rather than transpose convolution. Default is False.
+            mode (str, optional): the upsampling algorithm: one of 'nearest', 
+                'bilinear', 'bicubic'. Default: 'nearest'
         """
         super(UpsamplingBlock, self).__init__()
         block = []
-        if upsample:
+        if use_upsampling:
             # Transpose convolution causes checkerboard artifacts. Upsampling
             # followed by a regular convolutions produces better results appearantly
             # Please check for further reading: https://distill.pub/2016/deconv-checkerboard/
-            # Odena, et al., "Deconvolution and Checkerboard Artifacts", Distill, 2016. http://doi.org/10.23915/di
+            # Odena, et al., "Deconvolution and Checkerboard Artifacts", Distill, 2016. http://doi.org/10.23915/distill.00003
+            
+            mode = mode if mode in ('nearest', 'bilinear', 'bicubic') else 'nearest'
+            
             block += [nn.Sequential(
-                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                nn.Upsample(scale_factor=2, mode=mode),
                 nn.Conv2d(in_channels=in_channels, out_channels=out_channels,
                           kernel_size=3, stride=1, padding=padding,
                           bias=False
