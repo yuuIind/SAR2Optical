@@ -1,10 +1,20 @@
-from typing import Tuple, List, Optional, Callable
+import json
+import random
 from pathlib import Path
+from enum import Enum
+from typing import Tuple, List, Optional, Callable, Union, Literal
 
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import v2
+
+
+class SplitType(Enum):
+    """Enumeration for dataset split types"""
+    TRAIN = 'train'
+    VAL = 'val'
+    TEST = 'test'
 
 
 class Sentinel(Dataset):
@@ -22,20 +32,42 @@ class Sentinel(Dataset):
                 image2.png
         category2/
             ...
+    
+    This class has support for train/val/test splits. When `split_type` is `None`, 
+    uses the complete dataset. When `split_type` is specified 
+    (``'train'``, ``'val'``, ``'test'``), the dataset can be split using:
+
+    1. A split that defines which images belong to which split
+    2. Random splitting with a specified ratio
 
     Args:
         root_dir (str | Path): Root directory containing the dataset
+        split_type (str | None): Which split to use ('train', 'val', 'test') or None for full dataset
         transform (callable, optional): Transform to apply to both SAR and optical images
+        split_mode (str, optional): How to split the dataset ('random', 'split')
+        split_ratio (Tuple[float, float, float], optional): Ratio for train/val/test splits
+        split_file (str | Path, optional): predefined the splits
+        seed (int, optional): Random seed for reproducible splitting
         
     Attributes:
         root_dir (Path): Path to the dataset root directory
         transform (callable): Transform pipeline for the images
         image_pairs (List[Tuple[Path, Path]]): List of paired image paths (SAR, optical)
     """
-    def __init__(self, root_dir: str | Path, transform: Optional[Callable] = None):
+    def __init__(self,
+                 root_dir: Union[str, Path],
+                 split_type: Optional[str] = None,
+                 transform: Optional[Callable] = None,
+                 split_mode: Literal['random', 'split'] = 'random',
+                 split_ratio: Tuple[float, float, float] = (0.7, 0.15, 0.15),
+                 split_file: Optional[Union[str, Path]] = None,
+                 seed: int = 42):
         self.root_dir = Path(root_dir)
         if not self.root_dir.exists():
             raise FileNotFoundError(f"Dataset root directory not found: {self.root_dir}")
+        
+        # Convert string split_type to enum if provided
+        self.split_type = SplitType(split_type) if split_type else None
 
         # Default transform pipeline
         self.transform = transform if transform else v2.Compose([
@@ -44,7 +76,19 @@ class Sentinel(Dataset):
         ])
 
         # Collect image pairs
-        self.image_pairs = self._collect_images()
+        self.all_image_pairs = self._collect_images()
+
+        # Apply split if specified
+        if split_type:
+            if split_mode == 'split' and split_file:
+                self.image_pairs = self._apply_predefined_split(split_file)
+            elif split_mode == 'random':
+                self.image_pairs = self._apply_random_split(split_ratio, seed)
+            else:
+                raise ValueError("Invalid split configuration. Use either 'split' with a split_file or 'random' with split_ratio")
+        else:
+            # If no split type specified, use all images
+            self.image_pairs = self.all_image_pairs
 
         print(f'Total image pairs found: {len(self)}')
 
@@ -86,6 +130,88 @@ class Sentinel(Dataset):
         
         return image_pairs
     
+    def _apply_predefined_split(self, split_file: Union[str, Path]) -> List[Tuple[Path, Path]]:
+        """
+        Applies a predefined split from a JSON file.
+        
+        Args:
+            split_file: Path to JSON file containing split definitions
+            
+        Returns:
+            List[Tuple[Path, Path]]: Image pairs for the specified split
+        """
+        try:
+            with open(split_file, 'r') as f:
+                splits = json.load(f)
+                
+            if self.split_type.value not in splits['data']:
+                raise ValueError(f"Split type {self.split_type.value} not found in split file")
+            
+            split_filenames = set(splits['data'][self.split_type.value]) # data['split']
+            return [pair for pair in self.all_image_pairs 
+                if any(p.name in split_filenames for p in pair[:2])]
+        except Exception as e:
+            print(f'Could not open split file\n\t{e}')
+            raise
+
+    def _apply_random_split(
+        self, 
+        split_ratio: Tuple[float, float, float],
+        seed: int
+    ) -> List[Tuple[Path, Path]]:
+        """
+        Randomly splits the dataset according to the given ratios.
+        
+        Args:
+            split_ratio: Tuple of (train, val, test) ratios
+            seed: Random seed for reproducibility
+            
+        Returns:
+            List[Tuple[Path, Path]]: Image pairs for the specified split
+        """
+        if sum(split_ratio) != 1:
+            raise ValueError("Split ratios must sum to 1")
+        
+        # Set random seed for reproducibility
+        random.seed(seed)
+        
+        # Shuffle indices
+        indices = list(range(len(self.all_image_pairs)))
+        random.shuffle(indices)
+        
+        # Calculate split points
+        train_end = int(len(indices) * split_ratio[0])
+        val_end = train_end + int(len(indices) * split_ratio[1])
+        
+        # Select appropriate slice based on split type
+        if self.split_type == SplitType.TRAIN:
+            split_indices = indices[:train_end]
+        elif self.split_type == SplitType.VAL:
+            split_indices = indices[train_end:val_end]
+        else:  # TEST
+            split_indices = indices[val_end:]
+            
+        return [self.all_image_pairs[i] for i in split_indices]
+    
+    def save_split(self, output_file: Union[str, Path], append: bool = False):
+        """
+        Saves the current split configuration to a JSON file.
+        
+        Args:
+            output_file: Path to save the split configuration
+            append: Define which mode you want to open the file in
+        """
+        if self.split_type:
+            split = self.split_type.value
+            split_info = {
+                'data' : {
+                    split: [p[0].name for p in self.image_pairs]
+                }
+            }
+            mode = 'a' if append else 'w'
+            with open(output_file, mode) as f:
+                json.dump(split_info, f, indent=2)
+    
     def __len__(self):
         """Returns the total number of image pairs in the dataset."""
         return len(self.image_pairs)
@@ -112,9 +238,3 @@ class Sentinel(Dataset):
         s2_image = self.transform(s2_image)
         
         return s1_image, s2_image
-
-
-if __name__ == '__main__':
-    path = './data/'
-
-    sent = Sentinel(root_dir=path)
