@@ -13,10 +13,8 @@ class Pix2Pix(nn.Module):
                  c_in: int = 3, 
                  c_out: int = 3, 
                  is_train: bool = True,
-                 netD: str = 'patch', 
-                 gan_mode: str = 'vanilla',
+                 netD: str = 'patch',
                  lambda_L1: float = 100.0,
-                 lambda_gp: float = 10.0,
                  is_CGAN: bool = True,
                  use_upsampling: bool = False,
                  mode: str = 'nearest',
@@ -33,9 +31,7 @@ class Pix2Pix(nn.Module):
             c_out: Number of output channels
             is_train: Whether the model is in training mode
             netD: Type of discriminator ('patch' or 'pixel')
-            gan_mode: Type of GAN loss ('vanilla', 'lsgan', or 'wgan-gp')
             lambda_L1: Weight for L1 loss
-            lambda_gp: Weight for gradient penalty (WGAN-GP only)
             is_CGAN: If True, use conditional GAN architecture
             use_upsampling: If True, use upsampling in generator instead of transpose conv
             mode: Upsampling mode ('nearest', 'bilinear', 'bicubic')
@@ -48,7 +44,6 @@ class Pix2Pix(nn.Module):
         super(Pix2Pix, self).__init__()
         self.is_CGAN = is_CGAN
         self.lambda_L1 = lambda_L1
-        self.gan_mode = gan_mode
 
         self.gen = UnetGenerator(c_in=c_in, c_out=c_out, use_upsampling=use_upsampling, mode=mode)
         self.gen = self.gen.apply(self.weights_init)
@@ -66,10 +61,7 @@ class Pix2Pix(nn.Module):
                 self.disc.parameters(), lr=lr, betas=(beta1, beta2))
 
             # Initialize loss functions
-            if gan_mode == 'wgan-gp':
-                self.criterion = nn.BCEWithLogitsLoss#(lambda_gp=lambda_gp)
-            else:
-                self.criterion = nn.BCEWithLogitsLoss()#(mode=gan_mode)
+            self.criterion = nn.BCEWithLogitsLoss()
             self.criterion_L1 = nn.L1Loss()
     
     def forward(self, x):
@@ -115,6 +107,7 @@ class Pix2Pix(nn.Module):
         else:
             fake_AB = fake_images
         return fake_AB
+    
     
     def step_discriminator(self, real_images, target_images, fake_images):
         """Discriminator forward/backward pass.
