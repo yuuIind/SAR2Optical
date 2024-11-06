@@ -149,7 +149,7 @@ class Sentinel(Dataset):
             
             split_filenames = set(splits['data'][self.split_type.value]) # data['split']
             return [pair for pair in self.all_image_pairs 
-                if any(p.name in split_filenames for p in pair[:2])]
+                if any(str(p.relative_to(self.root_dir)) in split_filenames for p in pair[:2])]
         except Exception as e:
             print(f'Could not open split file\n\t{e}')
             raise
@@ -205,7 +205,7 @@ class Sentinel(Dataset):
             split = self.split_type.value
             split_info = {
                 'data' : {
-                    split: [p[0].name for p in self.image_pairs]
+                    split: [str(p[0].relative_to(self.root_dir)) for p in self.image_pairs]
                 }
             }
             # Check if the file exists
