@@ -50,7 +50,7 @@ class Pix2Pix(nn.Module):
         
         if is_train:
             # Conditional GANs need both input and output together, the total input channel is c_in+c_out
-            disc_in = c_out if is_CGAN else c_in + c_out
+            disc_in = c_in + c_out if is_CGAN else c_out
             self.disc = PatchGAN(c_in=disc_in, c_hid=c_hid, mode=netD, n_layers=n_layers) 
             self.disc = self.disc.apply(self.weights_init)
 
@@ -146,18 +146,18 @@ class Pix2Pix(nn.Module):
             Discriminator loss value
         """
         # Prepare input
-        fake_AB = self._get_disc_inputs(real_images, fake_images)
+        fake_AB = self._get_gen_inputs(real_images, fake_images)
           
         # Forward pass through the discriminator
         pred_fake = self.disc(fake_AB)
 
         # Compute the losses
         lossG_GaN = self.criterion(pred_fake, torch.ones_like(pred_fake)) # GAN Loss
-        lossG_L1 = self.criterionL1(fake_images, target_images)           # L1 Loss
-        lossG = lossG_GaN + self.lambdaL1 * lossG_L1                      # Combined Loss
+        lossG_L1 = self.criterion_L1(fake_images, target_images)           # L1 Loss
+        lossG = lossG_GaN + self.lambda_L1 * lossG_L1                      # Combined Loss
         # Return total loss and individual components
         return lossG, {
-            'loss_G_total': lossG.item(),
+            'loss_G': lossG.item(),
             'loss_G_GAN': lossG_GaN.item(),
             'loss_G_L1': lossG_L1.item()
         }
