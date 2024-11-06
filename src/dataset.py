@@ -193,13 +193,13 @@ class Sentinel(Dataset):
             
         return [self.all_image_pairs[i] for i in split_indices]
     
-    def save_split(self, output_file: Union[str, Path], append: bool = False):
+    def save_split(self, output_file: Union[str, Path], is_exists: bool = False):
         """
         Saves the current split configuration to a JSON file.
         
         Args:
             output_file: Path to save the split configuration
-            append: Define which mode you want to open the file in
+            is_exists: If file exist, add new split data
         """
         if self.split_type:
             split = self.split_type.value
@@ -208,8 +208,20 @@ class Sentinel(Dataset):
                     split: [p[0].name for p in self.image_pairs]
                 }
             }
-            mode = 'a' if append else 'w'
-            with open(output_file, mode) as f:
+            # Check if the file exists
+            if is_exists and Path(output_file).exists():
+                # Read the existing content
+                with open(output_file, 'r') as f:
+                    existing_data = json.load(f)
+                # Check if 'data' is already in the existing content, if not, create it
+                if 'data' not in existing_data:
+                    existing_data['data'] = {}
+                
+                # Add or update the split information
+                existing_data['data'][split] = split_info['data'][split]
+                split_info = existing_data
+            
+            with open(output_file, 'w') as f:
                 json.dump(split_info, f, indent=2)
     
     def __len__(self):
