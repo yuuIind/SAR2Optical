@@ -17,9 +17,9 @@ This project implements a deep learning model for translating Synthetic Aperture
 
 ## Dataset
 
-For this project, paired SAR and optical (RGB) images from the Sentinel‑1 and Sentinel‑2 satellites are used to train the models. The dataset source is [Sentinel-1&2 Image Pairs, Michael Schmitt, Technical University of Munich (TUM)](https://mediatum.ub.tum.de/1436631). The dataset is downloaded from Kaggle at [Sentinel-1&2 Image Pairs (SAR & Optical)](https://www.kaggle.com/datasets/requiemonk/sentinel12-image-pairs-segregated-by-terrain), uploaded by [Paritosh Tiwari (@requiemonk)](https://www.kaggle.com/requiemonk).
+For this project, paired SAR and optical (RGB) images from the Sentinel‑1 and Sentinel‑2 satellites are used to train the models. The dataset source is [Sentinel-1&2 Image Pairs, Michael Schmitt, Technical University of Munich (TUM)](https://mediatum.ub.tum.de/1436631).  The dataset is available on [Kaggle](https://www.kaggle.com/) at [Sentinel-1&2 Image Pairs (SAR & Optical)](https://www.kaggle.com/datasets/requiemonk/sentinel12-image-pairs-segregated-by-terrain), uploaded by [Paritosh Tiwari (@requiemonk)](https://www.kaggle.com/requiemonk).
 
-The dataset is divided into three splits: training, validation, and testing. We randomly sampled a total of 1,000 image pairs for testing, with 250 pairs from each of the four classes. Similarly, another 1,000 pairs were allocated for validation, also with same distribution. The remaining 14,000 image pairs were designated for training. You can find the IDs for each split in the [split.txt](/data/split.txt).
+The dataset is divided into three splits: training, validation, and testing. We randomly sampled 1,600 image pairs for validation, and another 1,600 pairs were allocated for test. The remaining 12,800 image pairs were used for training. All splits have similar category distributions. The IDs for each split can be found in the [split.json](/data/split.json).
 
 ## Installation
 
