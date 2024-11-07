@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a deep learning model for translating Synthetic Aperture Radar (SAR) images to optical images using the Pix2Pix framework. The goal is to improve the interpretability of SAR data by converting it into a format that is more accessible and useful for various applications, including remote sensing, environmental monitoring, and urban planning.
+This is a Pix2Pix CGAN implementation for translating Synthetic Aperture Radar (SAR) images to optical images.
 
 ## Table of Contents
 
