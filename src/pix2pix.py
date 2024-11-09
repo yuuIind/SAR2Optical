@@ -256,7 +256,7 @@ class Pix2Pix(nn.Module):
 
         generated_images = (generated_images + 1) / 2  # Rescale to [0, 1]
         if to_uint8:
-            generated_images = (generated_images* 255).astype(torch.uint8)  # Scale to [0, 255] and convert to uint8
+            generated_images = (generated_images* 255).to(dtype=torch.uint8)  # Scale to [0, 255] and convert to uint8
         
         return generated_images
 
