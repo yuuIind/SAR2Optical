@@ -141,14 +141,14 @@ class Sentinel(Dataset):
             List[Tuple[Path, Path]]: Image pairs for the specified split
         """
         try:
-            with open(split_file, 'r') as f:
+            with open(split_file, 'r') as f: # get the split content
                 splits = json.load(f)
                 
-            if self.split_type.value not in splits['data']:
+            if self.split_type.value not in splits['data']: # check if it helds
                 raise ValueError(f"Split type {self.split_type.value} not found in split file")
             
             split_filenames = set(splits['data'][self.split_type.value]) # data['split']
-            return [pair for pair in self.all_image_pairs 
+            return [pair for pair in self.all_image_pairs # collect and return split
                 if any(str(p.relative_to(self.root_dir)) in split_filenames for p in pair[:2])]
         except Exception as e:
             print(f'Could not open split file\n\t{e}')

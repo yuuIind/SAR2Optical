@@ -44,11 +44,12 @@ class Pix2Pix(nn.Module):
         super(Pix2Pix, self).__init__()
         self.is_CGAN = is_CGAN
         self.lambda_L1 = lambda_L1
+        self.is_train = is_train
 
         self.gen = UnetGenerator(c_in=c_in, c_out=c_out, use_upsampling=use_upsampling, mode=mode)
         self.gen = self.gen.apply(self.weights_init)
         
-        if is_train:
+        if self.is_train:
             # Conditional GANs need both input and output together, the total input channel is c_in+c_out
             disc_in = c_in + c_out if is_CGAN else c_out
             self.disc = PatchGAN(c_in=disc_in, c_hid=c_hid, mode=netD, n_layers=n_layers) 
@@ -64,7 +65,7 @@ class Pix2Pix(nn.Module):
             self.criterion = nn.BCEWithLogitsLoss()
             self.criterion_L1 = nn.L1Loss()
     
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         return self.gen(x)
     
     @staticmethod    
@@ -82,7 +83,11 @@ class Pix2Pix(nn.Module):
             nn.init.normal_(m.weight, 1.0, 0.02)
             nn.init.constant_(m.bias, 0)
 
-    def _get_disc_inputs(self, real_images, target_images, fake_images):
+    def _get_disc_inputs(self, 
+                         real_images: torch.Tensor,
+                         target_images: torch.Tensor, 
+                         fake_images: torch.Tensor
+                         ):
         """Prepare discriminator inputs based on conditional/unconditional setup."""
         if self.is_CGAN:
             # Conditional GANs need both input and output together, 
@@ -96,7 +101,10 @@ class Pix2Pix(nn.Module):
             fake_AB = fake_images.detach()
         return real_AB, fake_AB
     
-    def _get_gen_inputs(self, real_images, fake_images):
+    def _get_gen_inputs(self, 
+                        real_images: torch.Tensor, 
+                        fake_images: torch.Tensor
+                        ):
         """Prepare discriminator inputs based on conditional/unconditional setup."""
         if self.is_CGAN:
             # Conditional GANs need both input and output together, 
@@ -109,7 +117,11 @@ class Pix2Pix(nn.Module):
         return fake_AB
     
     
-    def step_discriminator(self, real_images, target_images, fake_images):
+    def step_discriminator(self, 
+                           real_images: torch.Tensor, 
+                           target_images: torch.Tensor, 
+                           fake_images: torch.Tensor
+                           ):
         """Discriminator forward/backward pass.
         
         Args:
@@ -134,7 +146,11 @@ class Pix2Pix(nn.Module):
         lossD = (lossD_real + lossD_fake) * 0.5 # Combined Loss
         return lossD
     
-    def step_generator(self, real_images, target_images, fake_images):
+    def step_generator(self, 
+                       real_images: torch.Tensor, 
+                       target_images: torch.Tensor, 
+                       fake_images: torch.Tensor
+                       ):
         """Discriminator forward/backward pass.
         
         Args:
@@ -162,7 +178,10 @@ class Pix2Pix(nn.Module):
             'loss_G_L1': lossG_L1.item()
         }
     
-    def train_step(self, real_images, target_images):
+    def train_step(self, 
+                   real_images: torch.Tensor, 
+                   target_images: torch.Tensor
+                   ):
         """Performs a single training step.
         
         Args:
@@ -177,13 +196,13 @@ class Pix2Pix(nn.Module):
         
         # Update discriminator
         self.disc_optimizer.zero_grad() # Reset the gradients for D
-        lossD = self.stepD(real_images, target_images, fake_images) # Compute the loss
+        lossD = self.step_discriminator(real_images, target_images, fake_images) # Compute the loss
         lossD.backward()
         self.disc_optimizer.step() # Update D
 
         # Update generator
         self.gen_optimizer.zero_grad() # Reset the gradients for D
-        lossG, G_losses = self.stepG(real_images, target_images, fake_images) # Compute the loss
+        lossG, G_losses = self.step_generator(real_images, target_images, fake_images) # Compute the loss
         lossG.backward()
         self.gen_optimizer.step() # Update D
 
@@ -193,7 +212,91 @@ class Pix2Pix(nn.Module):
             **G_losses
         }
     
-    def get_current_visuals(self, real_images, target_images):
+    def validation_step(self, 
+                   real_images: torch.Tensor, 
+                   target_images: torch.Tensor
+                   ):
+        """Performs a single validation step.
+        
+        Args:
+            real_images: Input images
+            target_images: Ground truth images
+            
+        Returns:
+            Dictionary containing all loss values from this step
+        """
+        with torch.no_grad():
+            # Forward pass through the generator
+            fake_images = self.forward(real_images)
+
+            # Compute the loss for D
+            lossD = self.step_discriminator(real_images, target_images, fake_images)
+            
+            # Compute the loss for G
+            _, G_losses = self.step_generator(real_images, target_images, fake_images)
+
+        # Return all losses
+        return {
+            'loss_D': lossD.item(),
+            **G_losses
+        }
+    
+    def generate(self, 
+                 real_images: torch.Tensor, 
+                 is_scaled: bool = False, 
+                 to_uint8: bool = False
+                 ):
+        if not is_scaled:
+            real_images = real_images.to(dtype=torch.float32) # Make sure it's a float tensor
+            real_images = real_images / 255.0 # Normalize to [0, 1]
+        real_images = (real_images - 0.5) / 0.5 # Scale to [-1, 1]
+
+        with torch.no_grad(): # generate image
+            generated_images = self.forward(real_images)
+
+        generated_images = (generated_images + 1) / 2  # Rescale to [0, 1]
+        if to_uint8:
+            generated_images = (generated_images* 255).astype(torch.uint8)  # Scale to [0, 255] and convert to uint8
+        
+        return generated_images
+
+            
+    def save_model(self, gen_path: str, disc_path: str = None):
+        """
+        Saves the generator model's state dictionary to the specified path.
+        If in training mode and a discriminator path is provided, saves the
+        discriminator model's state dictionary as well.
+
+        Args:
+            gen_path (str): The file path where the generator model's state dictionary will be saved.
+            disc_path (str, optional): The file path where the discriminator model's state dictionary will be saved. Defaults to None.
+        """
+        torch.save(self.gen.state_dict(), gen_path)
+        if self.is_train and disc_path != None:
+            torch.save(self.disc.state_dict(), disc_path)
+    
+    def load_model(self, gen_path: str, disc_path: str = None, device: str = None):
+        """
+        Loads the generator and optionally the discriminator model from the specified file paths.
+
+        Args:
+            gen_path (str): Path to the generator model file.
+            disc_path (str, optional): Path to the discriminator model file. Defaults to None.
+            device (torch.device, optional): The device on which to load the models. If None, the device of the model's parameters will be used. Defaults to None.
+
+        Returns:
+            None
+        """
+        device = device if device else next(self.gen.parameters()).device
+        self.gen.load_state_dict(torch.load(gen_path, map_location=device, weights_only=True), strict=False)
+        if disc_path != None and self.is_train:
+            device = device if device else next(self.disc.parameters()).device
+            self.disc.load_state_dict(torch.load(gen_path, map_location=device, weights_only=True), strict=False)
+    
+    def get_current_visuals(self, 
+                            real_images: torch.Tensor, 
+                            target_images: torch.Tensor
+                            ):
         """Return visualization images.
         
         Args:
