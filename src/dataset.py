@@ -75,7 +75,7 @@ class Sentinel(Dataset):
             v2.ToImage(),
             v2.ToDtype(torch.float32, scale=True)
         ])
-        self.target_transform = input_transform if input_transform else self.input_transform
+        self.target_transform = target_transform if input_transform else self.input_transform
 
         # Collect image pairs
         self.all_image_pairs = self._collect_images()
