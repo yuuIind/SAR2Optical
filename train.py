@@ -46,12 +46,13 @@ def load_checkpoint(model: Pix2Pix, config: Config):
     
     model.load_model(gen_path=gen_checkpoint, disc_path=disc_checkpoint)
 
-def create_dataloader(config, split_type: str, transform):
+def create_dataloader(config, split_type: str, input_transform, target_transform=None):
     """Create dataset and dataloader based on split type"""
     dataset = Sentinel(
         root_dir=config['dataset']['root_dir'],
         split_type=split_type,
-        transform=transform,
+        input_transform=input_transform,
+        target_transform=target_transform,
         split_mode=config['dataset']['split_mode'],
         split_ratio=config['dataset']['split_ratio'],
         split_file=config['dataset']['split_file'],

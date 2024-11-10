@@ -57,7 +57,8 @@ class Sentinel(Dataset):
     def __init__(self,
                  root_dir: Union[str, Path],
                  split_type: Optional[str] = None,
-                 transform: Optional[Callable] = None,
+                 input_transform: Optional[Callable] = None,
+                 target_transform: Optional[Callable] = None,
                  split_mode: Literal['random', 'split'] = 'random',
                  split_ratio: Tuple[float, float, float] = (0.7, 0.15, 0.15),
                  split_file: Optional[Union[str, Path]] = None,
@@ -70,10 +71,11 @@ class Sentinel(Dataset):
         self.split_type = SplitType(split_type) if split_type else None
 
         # Default transform pipeline
-        self.transform = transform if transform else v2.Compose([
+        self.input_transform = input_transform if input_transform else v2.Compose([
             v2.ToImage(),
             v2.ToDtype(torch.float32, scale=True)
         ])
+        self.target_transform = input_transform if input_transform else self.input_transform
 
         # Collect image pairs
         self.all_image_pairs = self._collect_images()
@@ -246,7 +248,7 @@ class Sentinel(Dataset):
         s2_image = Image.open(s2_path).convert('RGB')
         
         # Apply transforms
-        s1_image = self.transform(s1_image)
-        s2_image = self.transform(s2_image)
+        s1_image = self.input_transform(s1_image)
+        s2_image = self.target_transform(s2_image)
         
         return s1_image, s2_image
