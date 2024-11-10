@@ -1,0 +1,8 @@
+comet_ml==3.47.2
+Pillow==10.1.0
+Pillow==11.0.0
+PyYAML==6.0.1
+PyYAML==6.0.2
+torch==2.1.0
+torchvision==0.16.0
+tqdm==4.66.1
