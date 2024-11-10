@@ -9,8 +9,7 @@ This is a Pix2Pix CGAN implementation for translating Synthetic Aperture Radar (
 - [Dataset](#dataset)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Training](#training)
-- [Evaluation](#evaluation)
+- [Models](#training)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
@@ -47,13 +46,13 @@ Before training, you need to prepare the dataset. Check [Dataset](#dataset) sect
 ### Train
 To train the model, run the following command:
    ```bash
-   Command here
+   python train.py
    ```
 
 ### Evaluate
 To evaluate the model’s performance, you can use metrics such as PSNR and SSIM. Example command:
    ```bash
-   Command here
+   python test.py
    ```
 
 ### Inference
