@@ -3,7 +3,7 @@
 
 # Dataset parameters
 dataset:
-  root_dir: "./data/v2"
+  root_dir: "./data/v2/"
   split_mode: "random"  # or "split"
   split_ratio: [0.7, 0.15, 0.15]  # train/val/test
   split_file: null  # path to split file if using predefined splits

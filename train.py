@@ -64,7 +64,7 @@ def create_dataloader(config, split_type: str, transform):
         num_workers=config['training']['num_workers']
     )
 
-def train_epoch(model, train_loader, device, epoch, config, experiment):
+def train_epoch(model, train_loader, device, epoch, experiment):
     """Train for one epoch"""
     model.train()
     total_lossD, total_lossG = 0.0, 0.0
@@ -127,7 +127,7 @@ def validate(model: Pix2Pix, val_loader: DataLoader, device: torch.device, epoch
 
 def main():
     # Load configuration
-    config = Config('config/default.yaml')
+    config = Config('config.yaml')
     use_validation = config['training']['use_validation']
     
     # Setup logging
@@ -177,21 +177,22 @@ def main():
     ).to(device)
 
     # Load checkpoint for resuming training
-    start_epoch: int = 0
+    start_epoch: int = 1
+    end_epoch: int = config['training']['num_epochs'] + 1
     if config['training']['resume']:
         load_checkpoint(model, config)
-        start_epoch = config['training'].get('resume_epoch', 0)
+        start_epoch = config['training'].get('resume_epoch', 1)
     
     model = torch.compile(model) # compile model for possible performance boost
 
     # Training loop
-    for epoch in range(start_epoch, config['training']['num_epochs']):
+    for epoch in range(start_epoch, end_epoch):
         # Train
-        train_epoch(model, train_loader, device, epoch, config)
+        train_epoch(model, train_loader, device, epoch, experiment)
         
         # Validate
         if use_validation:
-            validate(model, val_loader, device)
+            validate(model, val_loader, device, epoch, experiment)
         
         # Regular checkpoint saving
         if epoch % config['training']['save_freq'] == 0:
@@ -200,7 +201,7 @@ def main():
     # Save final model
     save_checkpoint(model, config['training']['num_epochs'], config)
     
-    if config['logging']['wandb']['enabled']:
+    if config['logging']['comet']['enabled']:
         experiment.finish()
 
 if __name__ == '__main__':

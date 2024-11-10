@@ -21,7 +21,7 @@ def init_comet(config: Config):
     if config['logging']['comet']['enabled']:
         import comet_ml
 
-        comet_ml.login(api_key="api_key")
+        comet_ml.login()
         # Create experiment object
         project = config['logging']['comet']['project']
         # You can further customizate logging behavior by updating 
