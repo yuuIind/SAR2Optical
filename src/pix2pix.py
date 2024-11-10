@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from .networks import UnetGenerator, PatchGAN
 
@@ -272,7 +271,7 @@ class Pix2Pix(nn.Module):
             disc_path (str, optional): The file path where the discriminator model's state dictionary will be saved. Defaults to None.
         """
         torch.save(self.gen.state_dict(), gen_path)
-        if self.is_train and disc_path != None:
+        if self.is_train and disc_path is not None:
             torch.save(self.disc.state_dict(), disc_path)
     
     def load_model(self, gen_path: str, disc_path: str = None, device: str = None):
@@ -289,7 +288,7 @@ class Pix2Pix(nn.Module):
         """
         device = device if device else next(self.gen.parameters()).device
         self.gen.load_state_dict(torch.load(gen_path, map_location=device, weights_only=True), strict=False)
-        if disc_path != None and self.is_train:
+        if disc_path is not None and self.is_train:
             device = device if device else next(self.disc.parameters()).device
             self.disc.load_state_dict(torch.load(gen_path, map_location=device, weights_only=True), strict=False)
     

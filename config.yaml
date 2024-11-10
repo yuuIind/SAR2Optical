@@ -1,0 +1,50 @@
+# config/default.yaml
+# Default configuration file with all possible parameters
+
+# Dataset parameters
+dataset:
+  root_dir: "./data/v2"
+  split_mode: "random"  # or "split"
+  split_ratio: [0.7, 0.15, 0.15]  # train/val/test
+  split_file: null  # path to split file if using predefined splits
+  seed: 42
+  shuffle: true
+
+# Model parameters
+model:
+  c_in: 3  # input channels
+  c_out: 3  # output channels
+  netD: "patch"  # discriminator type: "patch" or "pixel"
+  lambda_L1: 100.0  # L1 loss weight
+  is_CGAN: true  # whether to use conditional GAN
+  use_upsampling: false  # use upsampling instead of transpose conv
+  mode: "nearest"  # upsampling mode: "nearest", "bilinear", "bicubic"
+  c_hid: 64  # base number of filters in discriminator
+  n_layers: 3  # number of layers in discriminator
+
+# Training parameters
+training:
+  num_epochs: 200
+  batch_size: 32
+  lr: 0.0002
+  beta1: 0.5
+  beta2: 0.999
+  use_validation: false
+  save_freq: 5  # save model every N epochs
+  eval_freq: 5   # run evaluation every N epochs
+  resume: false  # whether to resume from checkpoint
+  resume_epoch: 0 # start from epoch X
+  gen_checkpoint: "./models/checkpoints/pix2pix_gen_X.pth" # Gen checkpoint path 
+  disc_checkpoint: "./models/checkpoints/pix2pix_disc_X.pth" # Disc checkpoint path
+  checkpoint_dir: "./models/checkpoints"
+  results_dir: "./models/results"
+  device: "cuda"  # or "cpu"
+  num_workers: 4  # dataloader workers
+
+# Logging parameters
+logging:
+  comet:
+    enabled: false
+    project: "pix2pix" # Project Name
+    name: null  # Experiment name, will be auto-generated if null 
+    entity: null  # your wandb username/entity
