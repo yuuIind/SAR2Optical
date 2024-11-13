@@ -292,6 +292,44 @@ class Pix2Pix(nn.Module):
             device = device if device else next(self.disc.parameters()).device
             self.disc.load_state_dict(torch.load(gen_path, map_location=device, weights_only=True), strict=False)
     
+    def save_optimizer(self, gen_opt_path: str, disc_opt_path: str = None):
+        """
+        Save the state of the optimizers to the specified file paths.
+        Args:
+            gen_opt_path (str): The file path to save the generator optimizer state.
+            disc_opt_path (str, optional): The file path to save the discriminator optimizer state. Defaults to None.
+        Notes:
+            This method saves the state of the generator optimizer to the specified `gen_opt_path`.
+            If `disc_opt_path` is provided, it also saves the state of the discriminator optimizer to the specified path.
+            This method only works if the model is in training mode (`is_train` is True). If the model is not in training mode,
+            it will print a message indicating that the model is not initialized in train mode.
+        """
+        if self.is_train:
+            torch.save(self.gen_optimizer.state_dict(), gen_opt_path)
+            if disc_opt_path is not None:
+                torch.save(self.disc_optimizer.state_dict(), disc_opt_path)
+        else:
+            print('Model is initialized in train mode. See `is_train` for more.')
+    
+    def load_optimizer(self, gen_opt_path: str, disc_opt_path: str = None):
+        """
+        Loads the optimizer states for the generator and discriminator from the specified file paths.
+        Args:
+            gen_opt_path (str): Path to the file containing the generator optimizer state.
+            disc_opt_path (str, optional): Path to the file containing the discriminator optimizer state. Defaults to None.
+        Notes:
+            This method saves the state of the generator optimizer to the specified `gen_opt_path`.
+            If `disc_opt_path` is provided, it also saves the state of the discriminator optimizer to the specified path.
+            This method only works if the model is in training mode (`is_train` is True). If the model is not in training mode,
+            it will print a message indicating that the model is not initialized in train mode.
+        """
+        if self.is_train:
+            self.gen_optimizer.load_state_dict(torch.load(gen_opt_path, weights_only=True))
+            if disc_opt_path is not None:
+                self.disc_optimizer.load_state_dict(torch.load(disc_opt_path, weights_only=True))
+        else:
+            print('Model is initialized in train mode. See `is_train` for more.')
+    
     def get_current_visuals(self, 
                             real_images: torch.Tensor, 
                             target_images: torch.Tensor
