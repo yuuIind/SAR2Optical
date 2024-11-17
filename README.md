@@ -4,9 +4,12 @@
 
 This is a Pix2Pix CGAN implementation for translating Synthetic Aperture Radar (SAR) images to optical images.
 
+![Example outputs](data/plots/model_results.png)
+
 ## Table of Contents
 
 - [Dataset](#dataset)
+- [Loss]()
 - [Installation](#installation)
 - [Usage](#usage)
 - [Models](#training)
@@ -19,6 +22,16 @@ This is a Pix2Pix CGAN implementation for translating Synthetic Aperture Radar (
 For this project, paired SAR and optical (RGB) images from the Sentinel‑1 and Sentinel‑2 satellites are used to train the models. The dataset source is [Sentinel-1&2 Image Pairs, Michael Schmitt, Technical University of Munich (TUM)](https://mediatum.ub.tum.de/1436631).  The dataset is available on [Kaggle](https://www.kaggle.com/) at [Sentinel-1&2 Image Pairs (SAR & Optical)](https://www.kaggle.com/datasets/requiemonk/sentinel12-image-pairs-segregated-by-terrain), uploaded and curated by [Paritosh Tiwari (@requiemonk)](https://www.kaggle.com/requiemonk).
 
 The dataset is divided into three splits: training, validation, and testing. We randomly sampled 1,600 image pairs for validation, and another 1,600 pairs were allocated for test. The remaining 12,800 image pairs were used for training. All splits have similar category distributions. The IDs for each split can be found in the [split.json](/data/split.json).
+
+## Loss Graphs
+- Discriminator vs Epoch
+  ![Discriminator](data/plots/lossD.jpeg)
+- Generator Overall Loss vs Epoch
+  ![Generator Overall Loss](data/plots/lossG.jpeg)
+- Generator GAN Loss vs Epoch
+  ![Generator GAN Loss](data/plots/lossG_GAN.jpeg)
+- Generator L1 Loss vs Epoch
+  ![Generator L1 Loss](data/plots/lossG_L1.jpeg)
 
 ## Installation
 
