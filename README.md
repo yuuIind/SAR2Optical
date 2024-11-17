@@ -4,12 +4,15 @@
 
 This is a Pix2Pix CGAN implementation for translating Synthetic Aperture Radar (SAR) images to optical images.
 
+The demo: [yuulind/sar2rgb](https://huggingface.co/spaces/yuulind/sar2rgb)
+
 ![Example outputs](data/plots/model_results.png)
 
 ## Table of Contents
 
 - [Dataset](#dataset)
-- [Loss]()
+- [Results & Model Files](#results--model-files)
+- [Loss](#loss-graphs)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Models](#training)
@@ -22,6 +25,21 @@ This is a Pix2Pix CGAN implementation for translating Synthetic Aperture Radar (
 For this project, paired SAR and optical (RGB) images from the Sentinel‑1 and Sentinel‑2 satellites are used to train the models. The dataset source is [Sentinel-1&2 Image Pairs, Michael Schmitt, Technical University of Munich (TUM)](https://mediatum.ub.tum.de/1436631).  The dataset is available on [Kaggle](https://www.kaggle.com/) at [Sentinel-1&2 Image Pairs (SAR & Optical)](https://www.kaggle.com/datasets/requiemonk/sentinel12-image-pairs-segregated-by-terrain), uploaded and curated by [Paritosh Tiwari (@requiemonk)](https://www.kaggle.com/requiemonk).
 
 The dataset is divided into three splits: training, validation, and testing. We randomly sampled 1,600 image pairs for validation, and another 1,600 pairs were allocated for test. The remaining 12,800 image pairs were used for training. All splits have similar category distributions. The IDs for each split can be found in the [split.json](/data/split.json).
+
+## Results & Model Files
+
+- **BASELINE FID SCORE** is between **30 and 40**
+- Baseline score is calculated by randomly sampling two sets from real images and comparing the them.
+- Trained model files are uploaded to huggingface hub and kaggle.
+
+| Number | Name                    | Model Type    | Description                                                                       | Link to Model File                                                                                       |
+|--------|-------------------------|---------------|-----------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| 1      | pix2pix_gen_180.pth     | Generator     | Pix2Pix generator with transpose convolution, 180 epochs. **FID score is 185.04** | [pix2pix_gen_180.pth](https://huggingface.co/yuulind/pix2pix-sar2rgb/resolve/main/pix2pix_gen_180.pth)   |
+| 2      | pix2pix_gen_265.pth     | Generator     | Pix2Pix generator with transpose convolution, 265 epochs. **FID score is 189.81** | [pix2pix_gen_265.pth](https://huggingface.co/yuulind/pix2pix-sar2rgb/resolve/main/pix2pix_gen_265.pth)   |
+| 3      | pix2pix_gen_295.pth     | Generator     | Pix2Pix generator with transpose convolution, 295 epochs. **FID score is 187.73** | [pix2pix_gen_295.pth](https://huggingface.co/yuulind/pix2pix-sar2rgb/resolve/main/pix2pix_gen_295.pth)   |
+| 4      | pix2pix_disc_180.pth    | Discriminator | Pix2Pix discriminator from epoch 180, with transpose convolution generator.       | [pix2pix_disc_180.pth](https://huggingface.co/yuulind/pix2pix-sar2rgb/resolve/main/pix2pix_disc_180.pth) |
+| 5      | pix2pix_disc_265.pth    | Discriminator | Pix2Pix discriminator from epoch 265, with transpose convolution generator.       | [pix2pix_disc_265.pth](https://huggingface.co/yuulind/pix2pix-sar2rgb/resolve/main/pix2pix_disc_265.pth) |
+| 6      | pix2pix_disc_295.pth    | Discriminator | Pix2Pix discriminator from epoch 295, with transpose convolution generator.       | [pix2pix_disc_295.pth](https://huggingface.co/yuulind/pix2pix-sar2rgb/resolve/main/pix2pix_disc_295.pth) |
 
 ## Loss Graphs
 - Discriminator vs Epoch
