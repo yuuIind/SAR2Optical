@@ -26,6 +26,32 @@ For this project, paired SAR and optical (RGB) images from the Sentinel‑1 and 
 
 The dataset is divided into three splits: training, validation, and testing. We randomly sampled 1,600 image pairs for validation, and another 1,600 pairs were allocated for test. The remaining 12,800 image pairs were used for training. All splits have similar category distributions. The IDs for each split can be found in the [split.json](/data/split.json).
 
+1. Download dataset by running the command below.
+   ```bash
+   python utils/data_downloader.py
+   ```
+   -  More information on [How to set up your API keys for Kaggle API](https://www.kaggle.com/docs/api#authentication)
+
+2. Use a predefined split via `split.json`
+   - You simply need to modify two key in the [`config.yaml`](/config.yaml) file 
+   ```
+   ...
+
+   # Dataset parameters
+   dataset:
+      ...
+      
+      split_mode: "split"
+    
+      ...
+      
+      split_file: "./data/split.json"
+    
+      ...
+
+   ...
+   ```
+
 ## Results & Model Files
 
 - **BASELINE FID SCORE** is between **30 and 40**
@@ -84,12 +110,6 @@ To train the model, run the following command:
 To evaluate the model’s performance, you can use metrics such as PSNR and SSIM. Example command:
    ```bash
    python test.py
-   ```
-
-### Inference
-Once the model is trained, you can use it to translate SAR images to optical images. Optionally, you can use the provided checkpoints:
-   ```bash
-   Command here
    ```
 
 ## License
