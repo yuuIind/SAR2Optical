@@ -52,6 +52,26 @@ The dataset is divided into three splits: training, validation, and testing. We 
    ...
    ```
 
+Please ensure your dataset is organized in the following directory structure:
+```
+/SAR2Optical/data
+└───v_2
+    ├───agri
+    │   ├───s1
+    │   └───s2
+    ├───barrenland
+    │   ├───s1
+    │   └───s2
+    ├───grassland
+    │   ├───s1
+    │   └───s2
+    └───urban
+        ├───s1
+        └───s2
+```
+If you have used the `data_downloader.py`, it will be downloaded automatically in this structure.
+
+
 ## Results & Model Files
 
 - **BASELINE FID SCORE** is between **30 and 40**
