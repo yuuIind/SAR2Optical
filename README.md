@@ -132,6 +132,39 @@ To evaluate the model’s performance, you can use metrics such as PSNR and SSIM
    python test.py
    ```
 
+### Inference
+To infer on a single image, please run the following command after changing config accordingly. Example command:
+   ```bash
+   python test.py
+   ```
+
+   ```bash
+   inference:
+      image_path: "./data/imgs/sample.jpg"  # path to single image for inference
+      output_path: "./output/sample_output.jpg"  # directory to save output images
+      gen_checkpoint: "./models/checkpoints/pix2pix_gen_X.pth"  # path to generator checkpoint
+      device: "cpu"  # or "cuda" or "cuda:0" for specific GPU
+   ```
+
+### ONNX Export
+You can export to ONNX with [torch2onnx.py](torch2onnx.py). 
+   ```bash
+   export:
+      gen_checkpoint: "path/to/model"  # path to generator checkpoint for export
+      export_path: "output.onnx"  # path to save exported model
+      is_dynamic: true  # whether to export with dynamic axes
+      input_shape: [1, 3, 256, 256]  # input shape for the model if not using dynamic axes
+      onnx:
+         opset_version: 17  # ONNX opset version for export
+   ```
+   ```bash
+   python torch2onnx.py
+   ```
+You can perform inference with the converted onnx file using the following command:
+   ```bash
+   python onnx_inference.py --model sar2rgb.onnx --input input.jpg --output output.jpg
+   ```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
