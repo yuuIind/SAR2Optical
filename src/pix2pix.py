@@ -248,8 +248,14 @@ class Pix2Pix(nn.Module):
         if not is_scaled:
             real_images = real_images.to(dtype=torch.float32) # Make sure it's a float tensor
             real_images = real_images / 255.0 # Normalize to [0, 1]
-        real_images = (real_images - 0.5) / 0.5 # Scale to [-1, 1]
-
+            real_images = (real_images - 0.5) / 0.5 # Scale to [-1, 1]
+        # Normalization is applied unconditionally if the line below is uncommented.
+        # Logically, it should be applied only when is_scaled is False. 
+        # However, I might be stupid and it could be a design oversight. 
+        # So, If someone complains later how the training does not work, 
+        # then we know why :)
+        # THE LINE IN QUESTION IS COMMENTED OUT BELOW
+        # real_images = (real_images - 0.5) / 0.5 # Scale to [-1, 1]
         with torch.no_grad(): # generate image
             generated_images = self.forward(real_images)
 
