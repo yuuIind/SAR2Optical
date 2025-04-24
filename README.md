@@ -133,12 +133,8 @@ To evaluate the model’s performance, you can use metrics such as PSNR and SSIM
    ```
 
 ### Inference
-To infer on a single image, please run the following command after changing config accordingly. Example command:
-   ```bash
-   python test.py
-   ```
-
-   ```bash
+To infer on a single image, please run the following command after changing [config](./config.yaml) accordingly. Example command:
+```bash
    inference:
       image_path: "./data/imgs/sample.jpg"  # path to single image for inference
       output_path: "./output/sample_output.jpg"  # directory to save output images
@@ -146,8 +142,14 @@ To infer on a single image, please run the following command after changing conf
       device: "cpu"  # or "cuda" or "cuda:0" for specific GPU
    ```
 
+   ```bash
+   python inference.py
+   ```
+
 ### ONNX Export
 You can export to ONNX with [torch2onnx.py](torch2onnx.py). 
+
+Change the [config](./config.yaml) accordingly
    ```bash
    export:
       gen_checkpoint: "path/to/model"  # path to generator checkpoint for export
@@ -157,6 +159,7 @@ You can export to ONNX with [torch2onnx.py](torch2onnx.py).
       onnx:
          opset_version: 17  # ONNX opset version for export
    ```
+Run the command
    ```bash
    python torch2onnx.py
    ```
